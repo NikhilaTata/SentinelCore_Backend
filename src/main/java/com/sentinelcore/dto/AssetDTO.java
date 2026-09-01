@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class AssetDTO {
 
-    private int id;
+    private Long id;
     private String assetName;
     private String assetType;
     private String ipAddress;
@@ -17,13 +17,14 @@ public class AssetDTO {
     private Integer cpuUsage;
     private Integer memoryUsage;
     private Integer diskUsage;
+    private Integer networkUsage;
     private String createdDate;
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -90,6 +91,9 @@ public class AssetDTO {
     public void setDiskUsage(Integer diskUsage) {
         this.diskUsage = diskUsage;
     }
+    public Integer getNetworkUsage() { return networkUsage; }
+
+    public void setNetworkUsage(Integer networkUsage) { this.networkUsage = networkUsage; }
 
     public String getCreatedDate() {
         return createdDate;

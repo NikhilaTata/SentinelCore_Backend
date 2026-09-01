@@ -1,80 +1,14 @@
-function Reports() {
-  return (
-    <div className="page-container">
+import { FileBarChart, ShieldAlert, Server, Activity } from "lucide-react";
 
-      <div className="page-header">
-        <div>
-          <h1>Security Reports</h1>
-          <p>View infrastructure health and security analytics.</p>
-        </div>
+const reports = [
+  ["Asset Health Report", "Infrastructure status, utilization and availability.", Server],
+  ["Security Alert Report", "Alert severity, frequency and affected assets.", ShieldAlert],
+  ["Incident Report", "Open, investigating and resolved incidents.", FileBarChart],
+  ["System Performance Report", "CPU, memory, disk and network trends.", Activity]
+];
 
-        <button className="primary-button">
-          ⬇ Generate Report
-        </button>
-      </div>
-
-      <div className="report-grid">
-
-        <div className="report-card">
-          <h2>Asset Health Report</h2>
-          <p>
-            Overview of CPU, memory and disk usage across monitored assets.
-          </p>
-          <button>View Report →</button>
-        </div>
-
-        <div className="report-card">
-          <h2>Incident Report</h2>
-          <p>
-            Summary of incidents, severity levels and resolution status.
-          </p>
-          <button>View Report →</button>
-        </div>
-
-        <div className="report-card">
-          <h2>Security Report</h2>
-          <p>
-            Security alerts and overall infrastructure security status.
-          </p>
-          <button>View Report →</button>
-        </div>
-
-      </div>
-
-      <div className="table-card report-summary">
-
-        <div className="table-header">
-          <h2>System Summary</h2>
-        </div>
-
-        <div className="summary-grid">
-
-          <div>
-            <span>Total Assets</span>
-            <strong>0</strong>
-          </div>
-
-          <div>
-            <span>Active Assets</span>
-            <strong>0</strong>
-          </div>
-
-          <div>
-            <span>Security Alerts</span>
-            <strong>0</strong>
-          </div>
-
-          <div>
-            <span>Incidents</span>
-            <strong>0</strong>
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
+export default function Reports() {
+  return <div><div className="page-heading"><div><h2>Reports</h2><p>Generate operational and security intelligence.</p></div></div>
+    <div className="report-grid">{reports.map(([title, desc, Icon]) => <div className="report-card" key={title}><div className="report-icon"><Icon size={23}/></div><h3>{title}</h3><p>{desc}</p><button className="btn secondary">View Report</button></div>)}</div>
+  </div>;
 }
-
-export default Reports;

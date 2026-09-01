@@ -31,6 +31,7 @@ public class AssetService {
                 .cpuUsage(assetDTO.getCpuUsage())
                 .memoryUsage(assetDTO.getMemoryUsage())
                 .diskUsage(assetDTO.getDiskUsage())
+                .networkUsage(assetDTO.getNetworkUsage())
                 .createdDate(assetDTO.getCreatedDate())
                 .build();
 
@@ -46,6 +47,7 @@ public class AssetService {
                 .cpuUsage(savedAsset.getCpuUsage())
                 .memoryUsage(savedAsset.getMemoryUsage())
                 .diskUsage(savedAsset.getDiskUsage())
+                .networkUsage(savedAsset.getNetworkUsage())
                 .createdDate(savedAsset.getCreatedDate())
                 .build();
     }
@@ -69,6 +71,7 @@ public class AssetService {
             dto.setCpuUsage(asset.getCpuUsage());
             dto.setMemoryUsage(asset.getMemoryUsage());
             dto.setDiskUsage(asset.getDiskUsage());
+            dto.setNetworkUsage(asset.getNetworkUsage());
             dto.setCreatedDate(asset.getCreatedDate());
 
             assetDTOList.add(dto);
@@ -78,7 +81,7 @@ public class AssetService {
     }
 
     // Get Asset By ID
-    public AssetDTO getAssetById(int id) {
+    public AssetDTO getAssetById(Long id) {
 
         Asset asset = assetRepository.findById(id).orElse(null);
 
@@ -97,8 +100,13 @@ public class AssetService {
         dto.setCpuUsage(asset.getCpuUsage());
         dto.setMemoryUsage(asset.getMemoryUsage());
         dto.setDiskUsage(asset.getDiskUsage());
+        dto.setNetworkUsage(asset.getNetworkUsage());
         dto.setCreatedDate(asset.getCreatedDate());
 
         return dto;
+    }
+    // Delete Asset
+    public void deleteAsset(Long id) {
+        assetRepository.deleteById(id);
     }
 }

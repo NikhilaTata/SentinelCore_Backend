@@ -18,7 +18,7 @@ public class Asset {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String assetName;
     private String assetType;
     private String ipAddress;
@@ -27,9 +27,10 @@ public class Asset {
     private Integer cpuUsage;
     private Integer memoryUsage;
     private Integer diskUsage;
+    private Integer networkUsage;
     private String createdDate;
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getAssetName() { return assetName; }
     public void setAssetName(String assetName) { this.assetName = assetName; }
@@ -54,6 +55,14 @@ public class Asset {
 
     public Integer getDiskUsage() { return diskUsage; }
     public void setDiskUsage(Integer diskUsage) { this.diskUsage = diskUsage; }
+
+    public Integer getNetworkUsage() {
+        return networkUsage;
+    }
+
+    public void setNetworkUsage(Integer networkUsage) {
+        this.networkUsage = networkUsage;
+    }
 
     public String getCreatedDate() { return createdDate; }
     public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }

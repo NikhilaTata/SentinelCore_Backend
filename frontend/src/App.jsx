@@ -1,69 +1,31 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-
+import { Routes, Route, Navigate } from "react-router-dom";
+import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/Assets";
+import AssetDetails from "./pages/AssetDetails";
 import Alerts from "./pages/Alerts";
 import Incidents from "./pages/Incidents";
 import Reports from "./pages/Reports";
+import AuditLogs from "./pages/AuditLogs";
+import Settings from "./pages/Settings";
+import Login from "./pages/Login";
 
-import "./App.css";
-
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-
-      <div className="app">
-
-        {/* Top Navigation */}
-        <Navbar />
-
-        {/* Sidebar + Main Content */}
-        <div className="app-body">
-
-          <Sidebar />
-
-          <main className="content">
-
-            <Routes>
-
-              <Route
-                path="/"
-                element={<Dashboard />}
-              />
-
-              <Route
-                path="/assets"
-                element={<Assets />}
-              />
-
-              <Route
-                path="/alerts"
-                element={<Alerts />}
-              />
-
-              <Route
-                path="/incidents"
-                element={<Incidents />}
-              />
-
-              <Route
-                path="/reports"
-                element={<Reports />}
-              />
-
-            </Routes>
-
-          </main>
-
-        </div>
-
-      </div>
-
-    </BrowserRouter>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/assets/:id" element={<AssetDetails />} />
+        <Route path="/alerts" element={<Alerts />} />
+        <Route path="/incidents" element={<Incidents />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/audit-logs" element={<AuditLogs />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
-
-export default App;

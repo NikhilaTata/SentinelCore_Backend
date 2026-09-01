@@ -1,206 +1,80 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import AssetCard from "../components/AssetCard";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search, RotateCcw } from "lucide-react";
+import { assetService } from "../services/assetService";
+import AssetTable from "../components/AssetTable";
+import AssetForm from "../components/AssetForm";
+import ConfirmDialog from "../components/ConfirmDialog";
+import LoadingSpinner from "../components/LoadingSpinner";
+import Toast from "../components/Toast";
 
-function Assets() {
+export default function Assets() {
   const [assets, setAssets] = useState([]);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toast, setToast] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [type, setType] = useState("");
 
-  const fetchAssets = async () => {
+  const load = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError("");
-
-      const response = await axios.get("http://localhost:8080/assets");
-
-      setAssets(response.data);
-    } catch (err) {
-      console.error("Error loading assets:", err);
-      setError(
-        "Unable to connect to the backend. Make sure Spring Boot is running."
-      );
-    } finally {
-      setLoading(false);
-    }
+      const data = await assetService.getAssets();
+      setAssets(Array.isArray(data) ? data : []);
+    } catch { setToast("Unable to load assets from backend."); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchAssets();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const filteredAssets = assets.filter((asset) => {
-    const matchesSearch =
-      asset.assetName?.toLowerCase().includes(search.toLowerCase()) ||
-      asset.ipAddress?.toLowerCase().includes(search.toLowerCase()) ||
-      asset.location?.toLowerCase().includes(search.toLowerCase());
+  const filtered = useMemo(() => assets.filter(a => {
+    const text = `${a.assetName} ${a.ipAddress} ${a.location} ${a.assetType}`.toLowerCase();
+    return (!search || text.includes(search.toLowerCase()))
+      && (!status || String(a.status).toUpperCase() === status)
+      && (!type || String(a.assetType).toUpperCase() === type);
+  }), [assets, search, status, type]);
 
-    const matchesFilter =
-      filter === "All" || asset.status === filter;
+  async function create(asset) {
+    try {
+      await assetService.createAsset(asset);
+      setShowForm(false);
+      setToast("Asset added successfully.");
+      load();
+    } catch { setToast("Failed to add asset. Check your Spring Boot API."); }
+  }
 
-    return matchesSearch && matchesFilter;
-  });
+  async function remove() {
+    if (!deleteTarget) return;
+    try {
+      await assetService.deleteAsset(deleteTarget.id);
+      setToast("Asset deleted successfully.");
+      setDeleteTarget(null);
+      load();
+    } catch { setToast("Failed to delete asset."); }
+  }
 
   return (
-    <div className="page-container">
-
-      {/* Page Header */}
-      <div className="page-header">
-
-        <div>
-          <h1>Asset Management</h1>
-
-          <p>
-            Monitor and manage all infrastructure assets.
-          </p>
-        </div>
-
-        <button
-          className="secondary-button"
-          onClick={fetchAssets}
-        >
-          ↻ Refresh
-        </button>
-
+    <div>
+      <div className="page-heading">
+        <div><h2>Asset Management</h2><p>Monitor, register and manage your infrastructure.</p></div>
+        <button className="btn primary" onClick={() => setShowForm(v => !v)}><Plus size={17}/> Register New Asset</button>
       </div>
 
-      {/* Statistics */}
-      <div className="stats-grid">
+      {showForm && <section className="panel form-panel"><div className="panel-header"><div><h3>Register New Asset</h3><p>Add a monitored asset to SentinelCore.</p></div></div><AssetForm onSubmit={create} onCancel={() => setShowForm(false)} /></section>}
 
-        <div className="stat-card">
-          <div className="stat-icon">
-            🖥️
-          </div>
-
-          <div>
-            <span>Total Assets</span>
-            <strong>{assets.length}</strong>
-          </div>
+      <section className="panel">
+        <div className="filter-bar">
+          <div className="search-input"><Search size={17}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search assets..." /></div>
+          <select value={status} onChange={e => setStatus(e.target.value)}><option value="">All Status</option><option>ONLINE</option><option>WARNING</option><option>OFFLINE</option><option>ACTIVE</option><option>INACTIVE</option></select>
+          <select value={type} onChange={e => setType(e.target.value)}><option value="">All Types</option><option>SERVER</option><option>ROUTER</option><option>DATABASE</option><option>NETWORK</option><option>STORAGE</option><option>SECURITY</option><option>COMPUTER</option></select>
+          <button className="btn secondary" onClick={() => {setSearch("");setStatus("");setType("");}}><RotateCcw size={16}/> Reset</button>
         </div>
+        {loading ? <LoadingSpinner text="Loading assets..." /> : <AssetTable assets={filtered} onDelete={setDeleteTarget} />}
+      </section>
 
-        <div className="stat-card">
-          <div className="stat-icon active-icon">
-            ✓
-          </div>
-
-          <div>
-            <span>Active</span>
-            <strong>
-              {assets.filter(
-                (asset) => asset.status === "Active"
-              ).length}
-            </strong>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon warning-icon">
-            ⚠️
-          </div>
-
-          <div>
-            <span>Warnings</span>
-            <strong>
-              {assets.filter(
-                (asset) => asset.status === "Warning"
-              ).length}
-            </strong>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon critical-icon">
-            🚨
-          </div>
-
-          <div>
-            <span>Critical</span>
-            <strong>
-              {assets.filter(
-                (asset) =>
-                  asset.status === "Critical"
-              ).length}
-            </strong>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Search and Filter */}
-      <div className="asset-controls">
-
-        <input
-          type="text"
-          placeholder="Search by name, IP address or location..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="All">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Warning">Warning</option>
-          <option value="Critical">Critical</option>
-        </select>
-
-      </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="loading">
-          Loading assets...
-        </div>
-      )}
-
-      {/* Backend Error */}
-      {!loading && error && (
-        <div className="error-message">
-          <h3>⚠️ Backend Connection Error</h3>
-          <p>{error}</p>
-          <button
-            className="secondary-button"
-            onClick={fetchAssets}
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {/* Asset Cards */}
-      {!loading && !error && (
-        <div className="asset-grid">
-
-          {filteredAssets.length > 0 ? (
-            filteredAssets.map((asset) => (
-              <AssetCard
-                key={asset.id}
-                asset={asset}
-              />
-            ))
-          ) : (
-            <div className="empty-state">
-              <div className="empty-icon">
-                🖥️
-              </div>
-
-              <h3>No assets found</h3>
-
-              <p>
-                There are no assets matching your search.
-              </p>
-            </div>
-          )}
-
-        </div>
-      )}
-
+      <ConfirmDialog open={Boolean(deleteTarget)} title="Delete asset?" message={`This will permanently remove ${deleteTarget?.assetName || "this asset"} from SentinelCore.`} onCancel={() => setDeleteTarget(null)} onConfirm={remove} />
+      <Toast message={toast} onClose={() => setToast("")} />
     </div>
   );
 }
-
-export default Assets;
