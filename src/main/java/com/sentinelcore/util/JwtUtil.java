@@ -1,32 +1,43 @@
 package com.sentinelcore.util;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private final SecretKey key =
-            Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    private final long EXPIRATION = 1000 * 60 * 60; // 1 hour
+    // 🌟 Step 4: Token lifecycles matching your official guide
+    private final long ACCESS_EXPIRATION = 1000 * 60 * 15;        // 15 minutes
+    private final long REFRESH_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
+    // Generate short-lived Access Token
     public String generateToken(String username) {
-
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION))
+                .signWith(key)
+                .compact();
+    }
+
+    // 🌟 ADDED FOR STEP 4: Generate long-lived Refresh Token
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION))
                 .signWith(key)
                 .compact();
     }
 
     public String extractUsername(String token) {
-
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -36,16 +47,10 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token) {
-
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-
-        } catch (JwtException e) {
+        } catch (Exception e) {
             return false;
         }
     }

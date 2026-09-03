@@ -8,12 +8,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/alerts")
+@RequestMapping("/alerts") // 🌟 FIXED: Changed from /api/alerts to /alerts to align with React
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class AlertController {
 
     private final AlertService alertService;
+
+    // 🌟 ADDED: This catches the base HTTP GET request made by alertService.js
+    @GetMapping
+    public List<AlertDTO> getAllAlerts() {
+        return alertService.getOpenAlerts();
+    }
 
     @GetMapping("/open")
     public List<AlertDTO> getOpenAlerts() {

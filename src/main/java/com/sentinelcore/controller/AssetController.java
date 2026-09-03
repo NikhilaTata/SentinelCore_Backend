@@ -2,21 +2,24 @@ package com.sentinelcore.controller;
 
 import com.sentinelcore.dto.AssetDTO;
 import com.sentinelcore.service.AssetService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize; // 🌟 Added for Step 5.2
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/assets")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class AssetController {
 
-    @Autowired
-    private AssetService assetService;
+    private final AssetService assetService;
 
-    // Save Asset
+    // Save Asset — Only ROLE_ADMIN accounts can hit this route!
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // 🌟 Step 5.2: Restricts asset creation to Admin accounts
     public AssetDTO createAsset(@RequestBody AssetDTO assetDTO) {
         return assetService.createAsset(assetDTO);
     }

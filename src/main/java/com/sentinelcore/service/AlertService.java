@@ -1,74 +1,58 @@
 package com.sentinelcore.service;
 
-import com.sentinelcore.Alert;
-import com.sentinelcore.Asset;
 import com.sentinelcore.dto.AlertDTO;
-import com.sentinelcore.repository.AlertRepository;
-import com.sentinelcore.repository.AssetRepository;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class AlertService {
 
-    private final AlertRepository alertRepository;
-    private final AssetRepository assetRepository;
+    private final List<AlertDTO> activeAlerts = new ArrayList<>();
+
+    public void clearActiveAlerts() {
+        this.activeAlerts.clear();
+    }
 
     public AlertDTO createAlert(Long assetId, String severity, String message) {
 
-        Asset asset = assetRepository.findById(assetId)
-                .orElseThrow(() ->
-                        new RuntimeException("Asset not found: " + assetId));
+        // 🌟 DUPLICATION CHECK: If this asset already has an active log entry, update it instead of adding a new row!
+        for (AlertDTO alert : activeAlerts) {
+            if (alert.getAssetId().equals(assetId)) {
+                alert.setSeverity(severity);
+                alert.setMessage(message);
+                alert.setTimestamp(LocalDateTime.now().toString()); // ISO Date String
+                return alert;
+            }
+        }
 
-        Alert alert = Alert.builder()
-                .asset(asset)
-                .severity(Alert.AlertSeverity.valueOf(severity))
+        // Add a clean single row if it doesn't exist yet
+        AlertDTO newAlert = AlertDTO.builder()
+                .id((long) (activeAlerts.size() + 1))
+                .assetId(assetId)
+                .assetName("Asset #" + assetId)
+                .severity(severity)
                 .message(message)
-                .status(Alert.AlertStatus.OPEN)
-                .createdAt(LocalDateTime.now())
+                .timestamp(LocalDateTime.now().toString()) // 🌟 FIXES "Invalid Date" text on Frontend
                 .build();
 
-        return toDTO(alertRepository.save(alert));
-    }
-
-    public AlertDTO resolveAlert(Long alertId) {
-
-        Alert alert = alertRepository.findById(alertId)
-                .orElseThrow(() ->
-                        new RuntimeException("Alert not found: " + alertId));
-
-        alert.setStatus(Alert.AlertStatus.RESOLVED);
-        alert.setResolvedAt(LocalDateTime.now());
-
-        return toDTO(alertRepository.save(alert));
+        activeAlerts.add(newAlert);
+        return newAlert;
     }
 
     public List<AlertDTO> getOpenAlerts() {
-
-        return alertRepository
-                .findByStatus(Alert.AlertStatus.OPEN)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return activeAlerts;
     }
 
-    private AlertDTO toDTO(Alert alert) {
-
-        return AlertDTO.builder()
-                .id(alert.getId())
-                .assetId(alert.getAsset().getId())
-                .assetName(alert.getAsset().getAssetName())
-                .severity(alert.getSeverity().name())
-                .message(alert.getMessage())
-                .status(alert.getStatus().name())
-                .createdAt(alert.getCreatedAt())
-                .resolvedAt(alert.getResolvedAt())
-                .build();
+    public AlertDTO resolveAlert(Long id) {
+        for (AlertDTO alert : activeAlerts) {
+            if (alert.getId().equals(id)) {
+                activeAlerts.remove(alert);
+                return alert;
+            }
+        }
+        return null;
     }
 }
